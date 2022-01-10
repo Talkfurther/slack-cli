@@ -85,6 +85,8 @@ while (( "$#" )); do
     --text=*) text=${1/--text=/''} ; shift ;;
     --text*|-tx*) text=${2} ; shift ; shift ;;
     --thumbnail=*) thumbnail=${1/--thumbnail=/''} ; shift ;;
+    --threadts=*) threadts=${1/--threadts=/''} ; shift ;;
+    --threadts*|-thts*) threadts=${2} ; shift ; shift ;;
     --thumbnail*|-th*) thumbnail=${2} ; shift ; shift ;;
     --time=*) _time=${1/--time=/''} ; shift ;;
     --time|-tm*) _time=${2} ; shift ; shift ;;
@@ -294,7 +296,15 @@ function chatdelete() {
 function chatsend() {
   [ -n "${stdin}" ] && [ -z "${text}" ] && text=\`\`\`${stdin//$'\n'/'\n'}\`\`\`
 
-  local msg=$(\
+  [ -n "${threadts}" ] && local msg=$(\
+    curl -s -X POST https://slack.com/api/chat.postMessage \
+      --data-urlencode "as_user=true" \
+      --data-urlencode "attachments=$(attachify)" \
+      --data-urlencode "channel=$(lchannel)" \
+      --data-urlencode "thread_ts=${threadts}" \
+      --data-urlencode "token=${token}")
+
+  [ -z "${threadts}" ] && local msg=$(\
     curl -s -X POST https://slack.com/api/chat.postMessage \
       --data-urlencode "as_user=true" \
       --data-urlencode "attachments=$(attachify)" \
